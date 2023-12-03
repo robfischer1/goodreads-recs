@@ -1,0 +1,9 @@
+name: wrecksys
+channels:
+  - conda-forge
+  - nvidia
+  - nodefaults
+dependencies:
+  - python=3.10
+  - pip
+  - cuda-toolkit>=11.8

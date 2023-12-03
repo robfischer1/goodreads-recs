@@ -1,0 +1,17 @@
+{
+    "embedding_dimensions": 16,
+    "rnn_dimensions": 32,
+    "batch_size": 240,
+    "num_predictions": 100,
+    "vocab_size": 22996,
+    "num_records": 13850051,
+    "min_series_length": 3,
+    "max_series_length": 10,
+    "sources": {
+        "authors": "https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/goodreads/goodreads_book_authors.json.gz",
+        "books": "https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/goodreads/byGenre/goodreads_books_fantasy_paranormal.json.gz",
+        "ratings": "https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/goodreads/byGenre/goodreads_interactions_fantasy_paranormal.json.gz",
+        "reviews": "https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/goodreads/byGenre/goodreads_reviews_fantasy_paranormal.json.gz",
+        "works": "https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/goodreads/goodreads_book_works.json.gz"
+    }
+}
