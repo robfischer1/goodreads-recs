@@ -3,30 +3,29 @@ WreckSys is a sequential recommendation system for Fantasy & Paranormal novels b
 
 Recommendations are based on the [Goodreads Dataset](https://mengtingwan.github.io/data/goodreads)
 
-It was originally created as a [WGU](http://www.wgu.edu/) Capstone project before taking on a life of its own.
+It was originally as a [WGU](http://www.wgu.edu/) Capstone project before taking on a life of its own.
 
 ### About
-[https://www.wrecksys.com/](https://www.wrecksys.com/)
 
-The current implementation and all associated documents are also available on the project [website](https://www.wrecksys.com/).
+See it in action at [https://www.wrecksys.com/](https://www.wrecksys.com/)  
+See how it was built on [Google Colab](#)
 
-### Installation
+### Usage
 
-Wrecksys is compatible with both Linux and Windows. Installing on WSL is preferred on Windows to allow access to tensorflow-gpu.
+Wrecksys is compatible with both Linux and Windows.  
+Installing on WSL is preferred on Windows to allow access to tensorflow-gpu.
 
-The fastest way to get up and running is to install [Conda](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe), clone the repository, and run *start.py* from the Anaconda Prompt.
+Wrecksys relies on a very large dataset. The fastest way to get up and running is via Google Colab:
 
-Requirements and dependencies are listed in environment.yml at the root of the repository if you would prefer to install manually. 
-
-```bash
-git clone https://github.com/robfischer1/capstone wrecksys
-cd wrecksys
-python -m start.py
+```jupyter
+%%bash
+git clone https://github.com/robfischer1/wrecksys wrecksys && cd wrecksys
+pip install -r requirements.txt
 ```
 
-### Docker
-The project frontend can be found in src/wrecksys_one
-
+Alternatives include:  
+*environment.yml* if you would prefer to experiment in [Conda](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe)  
+*requirements.txt* to install in the virtual environment of your choice.
 
 ### License
 

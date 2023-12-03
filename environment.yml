@@ -6,4 +6,15 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - cuda-toolkit>=11.8
+  - "cuda-toolkit>=11.8"
+  - pandas=2.1.3
+  - pyarrow=14.0.1
+  - numpy
+  - fsspec
+  - tqdm
+  - requests
+  - aiohttp
+  - pip:
+    - tensorflow==2.14; sys_platform == "win32"
+    - tensorflow[and-cuda]==2.14; sys_platform == "linux"
+    - --extra-index-url https://pypi.nvidia.com
