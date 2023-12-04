@@ -21,7 +21,7 @@ config_file = ConfigFile()
 ENV_DATA = 'WRECKSYS_DATA'
 
 class GoodreadsData(object):
-    def __init__(self, data_directory: str | os.PathLike | None = None):
+    def __init__(self, data_directory=None):
         if not data_directory:
             if ENV_DATA not in os.environ:
                 raise ValueError("Please provide a data directory.")

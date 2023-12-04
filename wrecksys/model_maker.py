@@ -18,7 +18,7 @@ ENV_DATA = 'WRECKSYS_DATA'
 
 class FunctionalModel(object):
 
-    def __init__(self, model_name: str, data_directory: str | os.PathLike | None = None):
+    def __init__(self, model_name: str, data_directory=None):
         if not data_directory:
             if ENV_DATA not in os.environ:
                 raise ValueError("Please provide a data directory.")
