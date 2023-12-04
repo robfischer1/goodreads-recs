@@ -13,14 +13,16 @@ from wrecksys.model import callbacks, losses, models, pipeline
 
 
 logger = logging.getLogger(__name__)
-WRECKSYS_DATA = os.environ.get('WRECKSYS_DATA', None)
 CONFIG_FILE = ConfigFile()
+ENV_DATA = 'WRECKSYS_DATA'
 
 class FunctionalModel(object):
 
-    def __init__(self, model_name: str, data_directory: str | os.PathLike = WRECKSYS_DATA):
-        if data_directory is None:
-            raise ValueError("Please provide a data directory.")
+    def __init__(self, model_name: str, data_directory: str | os.PathLike | None = None):
+        if not data_directory:
+            if ENV_DATA not in os.environ:
+                raise ValueError("Please provide a data directory.")
+            data_directory = os.getenv(ENV_DATA)
         self.name = model_name
         self.data = GoodreadsData(data_directory)
         self.config = CONFIG_FILE.data
