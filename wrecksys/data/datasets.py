@@ -36,8 +36,6 @@ class GoodreadsData(object):
         self.database = self.data_dir / database_filename
         self.dataset = self.data_dir / dataset_filename
 
-        self._preload_dataset()
-
     @property
     def vocab_size(self):
         return self.config.vocab_size
@@ -58,7 +56,7 @@ class GoodreadsData(object):
         files = utils.source_files(self.config['sources'], self.data_dir)
         return {k: download.FileManager(**v, download=dl) for k, v in files.items()}
 
-    def _preload_dataset(self) -> None:
+    def preload_dataset(self) -> None:
         if self.database.exists() and self.dataset.exists():
             return
         ratings_df, works_df = self._preload_dataframes()

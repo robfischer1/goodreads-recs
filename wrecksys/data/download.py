@@ -31,7 +31,7 @@ class TqdmAutoCallback(TqdmCallback):
 class FileManager(object):
     _class_logger = logging.getLogger(__name__).getChild(__qualname__)
 
-    def __init__(self, url, file_name, example_file, output_file, download=False):
+    def __init__(self, url: str, file_name: str, example_file: pathlib.Path, output_file: pathlib.Path, download=False):
         self._url = url
         self._file = file_name
         self._example_file = example_file
@@ -60,6 +60,7 @@ class FileManager(object):
 
     def dataframe(self, cols=None) -> pd.DataFrame:
         if not self._output_file.exists():
+            self._output_file.parent.mkdir(exist_ok=True)
             self.download()
         self._class_logger.info(f" Reading {self._output_file.name}")
         return pd.read_feather(self._output_file, columns=cols)
