@@ -1,3 +1,4 @@
+import csv
 import gzip
 import io
 import json
@@ -72,38 +73,35 @@ class FileManager(object):
 
         print(f"Fetching {self._url}")
         fs = fsspec.filesystem('http', client_kwargs={'read_timeout': 1200.})
-        file_size = fs.info(self._url)['size']
-
         self._output_file.parent.mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = f"{self._file}.json.gz"
-            file = pathlib.Path(temp_dir) / temp_file
-            free_space = shutil.disk_usage(file.parent)[2]
 
-            if free_space < 3 * file_size:
-                available = utils.display_size(free_space)
-                required = utils.display_size(3 * file_size)
-                raise OSError(f"Not enough disk space available. Processing {file.name} requires {required} "
-                              f"but only {available} is free.")
-            else:
-                print(f"Disk space OK: {utils.display_size(free_space)} available.")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            json_file = pathlib.Path(temp_dir) / f"{self._file}.json.gz"
+            csv_file = json_file.with_suffix('').with_suffix('.csv')
 
             fs.get_file(self._url,
-                        file,
+                        json_file,
                         callback=TqdmCallback(
                             tqdm_kwargs={'desc': "Downloading: ", 'file': sys.stdout, 'unit': 'B', 'unit_scale': True}))
 
-            table = pa_json.read_json(file)
-            feather.write_feather(table, self._output_file)
-            del table
-            """with gzip.open(file) as fp_in:
-                gz_size = fp_in.seek(0, io.SEEK_END)
-                fp_in.seek(0)
-                with tqdm.wrapattr(fp_in, 'read', desc='Converting: ',
-                                   file=sys.stdout, unit='B', unit_scale=True, total=gz_size) as f_in:
-                    table = pa_json.read_json(f_in)
-                    feather.write_feather(table, self._output_file)
-                    del table"""
+            with gzip.open(json_file) as input_file:
+                logger.debug(f'Generating {csv_file.name}')
+                with open(csv_file, 'w', newline='', encoding='utf_8') as temp_file:
+                    writer = csv.writer(temp_file)
+                    line = input_file.readline()
+                    obj = json.loads(line)
+                    columns = obj.keys()
+                    writer.writerow(columns)
+                    writer.writerow([str(obj[col]) for col in columns])
+                    for line in input_file.readlines():
+                        obj = json.loads(line)
+                        writer.writerow([str(obj[col]) for col in columns])
+                logger.debug(f'Creating {self._file} dataframe')
+                df = pd.read_csv(csv_file)
+                logger.debug(f'Writing {self._output_file}')
+                df.to_feather(self._output_file)
+
+
 
             print(f"Successfully created {self._output_file}\n")
 
