@@ -60,7 +60,6 @@ class FileManager(object):
 
     def dataframe(self, cols=None) -> pd.DataFrame:
         if not self._output_file.exists():
-            self._output_file.parent.mkdir(exist_ok=True)
             self.download()
         self._class_logger.info(f" Reading {self._output_file.name}")
         return pd.read_feather(self._output_file, columns=cols)
@@ -75,6 +74,7 @@ class FileManager(object):
         fs = fsspec.filesystem('http', client_kwargs={'read_timeout': 1200.})
         file_size = fs.info(self._url)['size']
 
+        self._output_file.parent.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_file = f"{self._file}.json.gz"
             file = pathlib.Path(temp_dir) / temp_file
