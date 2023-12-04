@@ -93,14 +93,17 @@ class FileManager(object):
                         callback=TqdmCallback(
                             tqdm_kwargs={'desc': "Downloading: ", 'file': sys.stdout, 'unit': 'B', 'unit_scale': True}))
 
-            with gzip.open(file) as fp_in:
+            table = pa_json.read_json(file)
+            feather.write_feather(table, self._output_file)
+            del table
+            """with gzip.open(file) as fp_in:
                 gz_size = fp_in.seek(0, io.SEEK_END)
                 fp_in.seek(0)
                 with tqdm.wrapattr(fp_in, 'read', desc='Converting: ',
                                    file=sys.stdout, unit='B', unit_scale=True, total=gz_size) as f_in:
                     table = pa_json.read_json(f_in)
                     feather.write_feather(table, self._output_file)
-                    del table
+                    del table"""
 
             print(f"Successfully created {self._output_file}\n")
 
