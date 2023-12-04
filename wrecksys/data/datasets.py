@@ -18,10 +18,12 @@ books_filename = 'clean/books.feather'
 logger = logging.getLogger(__name__).parent
 config_file = ConfigFile()
 
+WRECKSYS_DATA = os.environ.get('WRECKSYS_DATA', None)
 
 class GoodreadsData(object):
-    def __init__(self, data_directory: str | os.PathLike):
-
+    def __init__(self, data_directory: str | os.PathLike = WRECKSYS_DATA):
+        if data_directory is None:
+            raise ValueError("Please provide a data directory.")
         self.config = config_file.data
         self.data_dir = pathlib.Path(data_directory)
         self.data_dir.parent.mkdir(exist_ok=True)
