@@ -90,10 +90,9 @@ class GoodreadsData(object):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.NOTSET)
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.debug("Working?")
 
     test_dataset = GoodreadsData()
-    for file, manager in test_dataset.files.items():
-        manager.download()
+    test_dataset.files['ratings'].download()

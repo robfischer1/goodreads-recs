@@ -4,6 +4,7 @@ from collections import namedtuple
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 from tqdm.auto import tqdm
 
 from wrecksys.data.download import FileManager
@@ -13,65 +14,42 @@ UserHistory = namedtuple("UserHistory", ["history", "books", "ratings"])
 UserContext = namedtuple("UserContext", ["context_id", "context_rating", "label_id"])
 
 def format_books(books_source: FileManager, authors_source: FileManager):
-    df = (
-        books_source
-        .dataframe(cols=['title', 'url', 'image_url', 'link', 'authors', 'book_id', 'work_id'])
-        .astype({
-            'title': 'string',
-            'url': 'string',
-            'image_url': 'string',
-            'link': 'string',
-            'book_id': 'Int64',
-            'work_id': 'Int64'})
-        .rename(columns={'authors': 'author_id'})
-    )
     logger.info(' Processing book data.')
+    df = books_source.dataframe(cols=['title', 'url', 'image_url', 'link', 'authors', 'book_id', 'work_id'])
 
     df['author_id'] = (
-        df['author_id']
-        .map(lambda x: x[0] if len(x) > 0 else pd.NA, na_action='ignore')
-        .map(lambda x: x['author_id'] if isinstance(x, dict) else x, na_action='ignore')
-        .astype('Int64')
+        df.pop('authors')
+        .map(lambda x: x[0] if len(x) > 0 else None, na_action='ignore')
+        .map(lambda x: int(x['author_id']) if isinstance(x, dict) else x, na_action='ignore')
+        .astype(pd.ArrowDtype(pa.int32()))
     )
-
-    df.replace('', pd.NA, inplace=True)
     df = df[~df['author_id'].isna()]
 
-    authors = (
-        authors_source
-        .dataframe(cols=['author_id', 'name'])
-        .astype({'author_id': 'Int64', 'name': 'string'})
-        .rename(columns={'name': 'author_name'}))
-
     logger.info(' Processing author data.')
+    authors = authors_source.dataframe(cols=['author_id', 'name']).rename(columns={'name': 'author_name'})
+    authors = authors[~authors['author_name'].isna()]
+
+
     df = df.merge(authors, how='left')
 
     return df
 
 
 def format_ratings(ratings_source: FileManager):
-    df = (ratings_source
-          .dataframe(cols=['user_id', 'book_id', 'rating', 'date_updated'])
-          .astype({'book_id': 'Int64', 'rating': 'Int64', 'date_updated': 'string'}))
-
     logger.info(' Processing rating data.')
-    df = df[(df['rating'] >= 3)]
-    df['rating'] = df['rating'].astype(pd.CategoricalDtype(categories=[0, 1, 2, 3, 4, 5], ordered=True))
-    df['book_id'] = df['book_id'].astype('category')
-    df['user_id'], _ = df['user_id'].factorize()
-    df['user_id'] += 1
-    df['user_id'] = df['user_id'].astype('category')
-    return df
+    df = ratings_source.dataframe(cols=['user_id', 'book_id', 'rating', 'date_updated'])
+    return df[(df['rating'] >= 3)]
+
 
 
 def format_works(works_source: FileManager):
+    logger.info('Processing works data.')
     df = (
         works_source
         .dataframe(cols=['work_id', 'best_book_id', 'ratings_count', 'ratings_sum'])
-        .astype('Int64')
         .rename(columns={'best_book_id': 'book_id'})
     )
-    logger.info(' Processing works data.')
+
     df['average_rating'] = round(df['ratings_sum'] / df['ratings_count'], 1)
 
     return df

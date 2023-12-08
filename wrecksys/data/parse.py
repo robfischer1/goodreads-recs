@@ -142,13 +142,17 @@ def interaction_parser(table: pa.Table) -> pa.Table:
     table = table.set_column(
         table.column_names.index(col),
         col,
-        pc.index_in(table.column('user_id'), table.column('user_id').unique()).dictionary_encode()
+        pc.add(
+            pc.index_in(
+                table.column('user_id'),
+                table.column('user_id').unique()
+            ).dictionary_encode(),
+            1
+        )
     )
     logger.info(f"User IDs Processed: {utils.display_size(table.nbytes)}")
 
-    col = 'review_text_incomplete'
-    table = table.set_column(
-        table.column_names.index(col),
+    table = table.append_column(
         'is_reviewed',
         pc.not_equal(table.column('review_text_incomplete'), "")
     )
@@ -194,5 +198,3 @@ def _feather_to_feather(file_name) -> None:
     parse = dispatcher.get(file_name, generic_parser)
     table = parse(table)
     feather.write_feather(table, output_file)
-
-_feather_to_feather('goodreads_book_works')
