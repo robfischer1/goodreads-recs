@@ -15,7 +15,8 @@ dataset_filename = 'dataset.npz'
 ratings_filename = 'clean/ratings.feather'
 books_filename = 'clean/books.feather'
 
-logger = logging.getLogger(__name__).parent
+# logger = logging.getLogger(__name__).parent
+logger = logging.getLogger(__name__)
 config_file = ConfigFile()
 
 ENV_DATA = 'WRECKSYS_DATA'
@@ -85,3 +86,14 @@ class GoodreadsData(object):
         ids, ratings, labels = process.build_records(df, self.min_length, self.max_length)
         np.savez_compressed(self.dataset, context_id=ids, context_rating=ratings, label_id=labels)
         return len(ids)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.NOTSET)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.debug("Working?")
+
+    test_dataset = GoodreadsData()
+    for file, manager in test_dataset.files.items():
+        manager.download()

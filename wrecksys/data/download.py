@@ -9,14 +9,14 @@ import tempfile
 
 import fsspec
 import pandas as pd
-import pyarrow.feather as feather
 from fsspec.callbacks import TqdmCallback
-from pyarrow import json as pa_json
 from tqdm.auto import tqdm
 
 from wrecksys import utils
+from wrecksys.data import parse
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.NOTSET)
 
 class TqdmAutoCallback(TqdmCallback):
     """
@@ -96,11 +96,7 @@ class FileManager(object):
             with gzip.open(file) as fp_in:
                 gz_size = fp_in.seek(0, io.SEEK_END)
                 fp_in.seek(0)
-                with tqdm.wrapattr(fp_in, 'read', desc='Converting: ',
-                                   file=sys.stdout, unit='B', unit_scale=True, total=gz_size) as f_in:
-                    table = pa_json.read_json(f_in)
-                    feather.write_feather(table, self._output_file)
-                    del table
+                parse.json_to_feather(fp_in, gz_size, self._output_file)
 
             print(f"Successfully created {self._output_file}\n")
 
