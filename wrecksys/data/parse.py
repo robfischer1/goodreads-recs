@@ -166,11 +166,14 @@ def work_parser(table: pa.Table) -> pa.Table:
     simple_columns = {
         'book_count': pa.int16(),
         'reviews_count': pa.int32(),
-        'original_publication_day': pa.int32(),
         'original_publication_month': pa.int32(),
         'text_reviews_count': pa.int32(),
         'best_book_id': pa.int32(),
         'original_publication_year': pa.int32(),
+        'original_publication_day': pa.int32(),
+        'ratings_count': pa.int32(),
+        'ratings_sum': pa.int32(),
+        'work_id': pa.int32()
     }
     return _convert_table(table, simple_columns)
 
@@ -190,5 +193,6 @@ def _feather_to_feather(file_name) -> None:
     logger.info(f"Table Loaded: {utils.display_size(table.nbytes)}")
     parse = dispatcher.get(file_name, generic_parser)
     table = parse(table)
-    test_file = str(output_file.parent / f"{file_name}2.feather")
-    feather.write_feather(table, test_file)
+    feather.write_feather(table, output_file)
+
+_feather_to_feather('goodreads_book_works')

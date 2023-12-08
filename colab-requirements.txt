@@ -1,5 +1,6 @@
 aiohttp
 fsspec
+gdown
 keras==2.14.0
 numpy
 pandas~=2.1.3
