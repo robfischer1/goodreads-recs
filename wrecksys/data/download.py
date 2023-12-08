@@ -62,7 +62,7 @@ class FileManager(object):
         if not self._output_file.exists():
             self.download()
         self._class_logger.info(f" Reading {self._output_file.name}")
-        return pd.read_feather(self._output_file, columns=cols)
+        return pd.read_feather(self._output_file, columns=cols, dtype_backend='pyarrow')
 
 
     def download(self) -> None:
