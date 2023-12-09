@@ -39,6 +39,7 @@ class FileManager(object):
         if download:
             self.download()
 
+    @property
     def exists(self) -> bool:
         return self._output_file.exists()
 
