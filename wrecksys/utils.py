@@ -70,3 +70,32 @@ def in_notebook() -> bool:
             return False
     except NameError:
         return False
+
+
+def check_memory() -> tuple[float, dict]:
+    """https://stackoverflow.com/a/75013631"""
+    # These are the usual ipython objects, including this one you are creating
+    ipython_vars = ["In", "Out", "exit", "quit", "get_ipython", "ipython_vars"]
+
+    # Get a sorted list of the objects and their sizes
+    mem = {
+        key: value
+        for key, value in sorted(
+            [
+                (x, sys.getsizeof(globals().get(x)))
+                for x in dir()
+                if not x.startswith("_") and x not in sys.modules and x not in ipython_vars
+            ],
+            key=lambda x: x[1],
+            reverse=True,
+        )
+    }
+
+    total = 0
+    for k, v in mem.items():
+        total += v
+        print(f"{k}: {display_size(v)}")
+
+    total /= 1e6
+
+    return total, mem

@@ -1,9 +1,10 @@
 aiohttp
 fsspec
 gdown
-keras==2.14.0
+keras
 numpy
 pandas~=2.1.3
 pyarrow==14.0.1
 seaborn>=0.13.0
+tensorflow
 tqdm
