@@ -37,6 +37,7 @@ class GoodreadsData(object):
         self.files = self._source_data()
         self.ratings = self.data_dir / ratings_filename
         self.books = self.data_dir / books_filename
+        self.books.parent.mkdir(exist_ok=True)
         self.database = self.data_dir / database_filename
         self.dataset = self.data_dir / dataset_filename
 
