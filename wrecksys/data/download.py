@@ -16,7 +16,6 @@ from wrecksys import utils
 from wrecksys.data import parse
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.NOTSET)
 
 class TqdmAutoCallback(TqdmCallback):
     """

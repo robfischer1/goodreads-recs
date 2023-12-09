@@ -1,5 +1,5 @@
-import tensorflow as tf
-import keras
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 
 @keras.saving.register_keras_serializable(package="GRU4Books")

@@ -19,8 +19,8 @@
 #   about the built-in Keras loss layers.
 #
 
-import tensorflow as tf
-import keras
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 
 class GlobalSoftmax(keras.losses.Loss):

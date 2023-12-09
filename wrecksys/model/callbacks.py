@@ -1,8 +1,8 @@
 import pathlib
 from datetime import datetime
 
-import tensorflow as tf
-import keras
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 
 class SaveCheckpoint(keras.callbacks.Callback):

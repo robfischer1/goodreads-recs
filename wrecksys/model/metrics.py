@@ -22,8 +22,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import keras
-import tensorflow as tf
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 
 def metrics_list(top_k: list[int]):

@@ -10,6 +10,7 @@ from tqdm.auto import tqdm
 from wrecksys.data.download import FileManager
 
 logger = logging.getLogger(__name__)
+
 UserHistory = namedtuple("UserHistory", ["history", "books", "ratings"])
 UserContext = namedtuple("UserContext", ["context_id", "context_rating", "label_id"])
 

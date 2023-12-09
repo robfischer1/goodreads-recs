@@ -1,11 +1,12 @@
 import logging
 
-import tensorflow as tf
-import keras
-
 from wrecksys.model import layers, metrics
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 logger = logging.getLogger(__name__)
+
+
 @keras.saving.register_keras_serializable(package="GRU4Books")
 class WreckSys(keras.Model):
 

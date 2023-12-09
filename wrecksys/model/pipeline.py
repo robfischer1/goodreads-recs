@@ -5,9 +5,8 @@ import pathlib
 import numpy as np
 
 from wrecksys.utils import import_tensorflow
-
-# Import without the chatter
 tf, keras = import_tensorflow()
+
 logger = logging.getLogger(__name__)
 
 

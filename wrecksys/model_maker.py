@@ -4,15 +4,14 @@ import os
 import pathlib
 from typing_extensions import Self
 
-from wrecksys import utils
-tf, keras = utils.import_tensorflow()
-
 from wrecksys.config import ConfigFile
 from wrecksys.data.datasets import GoodreadsData
 from wrecksys.model import callbacks, losses, models, pipeline
-
+from wrecksys.utils import import_tensorflow
+tf, keras = import_tensorflow()
 
 logger = logging.getLogger(__name__)
+
 CONFIG_FILE = ConfigFile()
 ENV_DATA = 'WRECKSYS_DATA'
 
