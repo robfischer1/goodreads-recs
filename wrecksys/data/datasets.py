@@ -24,7 +24,7 @@ ENV_DATA = 'WRECKSYS_DATA'
 DOWNLOAD = utils.in_notebook()
 
 class GoodreadsData(object):
-    def __init__(self, data_directory=None, skip_processing=DOWNLOAD):
+    def __init__(self, data_directory=None, skip_processing: bool=DOWNLOAD):
         if not data_directory:
             if ENV_DATA not in os.environ:
                 raise ValueError("Please provide a data directory.")

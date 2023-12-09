@@ -12,7 +12,6 @@ from wrecksys.data.download import FileManager
 logger = logging.getLogger(__name__)
 
 UserHistory = namedtuple("UserHistory", ["history", "books", "ratings"])
-UserContext = namedtuple("UserContext", ["context_id", "context_rating", "label_id"])
 
 def format_works(books_source: FileManager,
                  authors_source: FileManager,
@@ -90,6 +89,7 @@ def filter_dataframes(ratings: pd.DataFrame, works: pd.DataFrame) -> tuple[pd.Da
         .drop(columns='work_id')
         .rename(columns={'work_index': 'work_id', 'date_updated': 'timestamp'})
         .reset_index(drop=True)
+        .sort_values(by=['user_id', 'timestamp'])
     )
 
 
@@ -103,7 +103,11 @@ def prepare_data(fm: dict[str, FileManager])  -> tuple[pd.DataFrame, pd.DataFram
     return rate_df, work_df
 
 
-def build_records(df: pd.DataFrame, min_length: int, max_length: int):
+def build_records(
+        df: pd.DataFrame,
+        min_length: int,
+        max_length: int) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
+
     context_ids = []
     context_ratings = []
     label_ids = []
@@ -144,7 +148,11 @@ def build_timelines(df: pd.DataFrame) -> list[UserHistory]:
     return timelines
 
 
-def build_contexts(user: UserHistory, min_length: int, max_length: int) -> tuple:
+def build_contexts(
+        user: UserHistory,
+        min_length: int,
+        max_length: int) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
+
     context_ids = []
     context_ratings = []
     label_ids = []
