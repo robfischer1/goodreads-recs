@@ -3,6 +3,7 @@ import os
 import pathlib
 import sqlite3
 
+import gdown
 import numpy as np
 import pandas as pd
 
@@ -20,9 +21,10 @@ logger = logging.getLogger(__name__)
 config_file = ConfigFile()
 
 ENV_DATA = 'WRECKSYS_DATA'
+DOWNLOAD = utils.in_notebook()
 
 class GoodreadsData(object):
-    def __init__(self, data_directory=None):
+    def __init__(self, data_directory=None, skip_processing=DOWNLOAD):
         if not data_directory:
             if ENV_DATA not in os.environ:
                 raise ValueError("Please provide a data directory.")
@@ -30,6 +32,7 @@ class GoodreadsData(object):
         self.config = config_file.data
         self.data_dir = pathlib.Path(data_directory)
         self.data_dir.parent.mkdir(exist_ok=True)
+        self.cheating = skip_processing
 
         self.files = self._source_data()
         self.ratings = self.data_dir / ratings_filename
@@ -68,7 +71,20 @@ class GoodreadsData(object):
     def _preload_dataframes(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         if self.ratings.exists() and self.books.exists():
             return pd.read_feather(self.ratings), pd.read_feather(self.books)
-        self.files = self._source_data(dl=True)
+
+        if self.cheating:
+            file_list = gdown.download_folder(
+                id=self.config.remote_storage,
+                output=str(self.data_dir / 'raw'),
+                quiet=False,
+                use_cookies=False)
+            for file in file_list:
+                logger.info(f"Successfully downloaded {file} from remote.")
+            if len(file_list) < len(self.config.sources):
+                self.files = self._source_data(dl=True)
+        else:
+            self.files = self._source_data(dl=True)
+
         ratings_df, works_df = process.prepare_data(self.files)
         ratings_df.to_feather(self.ratings)
         works_df.to_feather(self.books)

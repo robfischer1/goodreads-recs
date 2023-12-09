@@ -54,3 +54,19 @@ def get_file_paths(url: str, dest_dir: pathlib.Path) -> dict:
 
 def source_files(sources: dict[str, str], data_dir: pathlib.Path) -> dict:
     return { k: get_file_paths(v, data_dir) for k, v in sources.items() }
+
+
+def in_notebook() -> bool:
+    try:
+        get_ipython = sys.modules['IPython'].get_ipython
+        if 'google.colab' in str(get_ipython()):
+            return True
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True
+        elif shell == 'TerminalInteractiveShell':
+            return False
+        else:
+            return False
+    except NameError:
+        return False

@@ -149,6 +149,7 @@ def interaction_parser(table: pa.Table) -> pa.Table:
             ).dictionary_encode(),
             1
         )
+        .cast(pa.int32())
     )
     logger.info(f"User IDs Processed: {utils.display_size(table.nbytes)}")
 
@@ -191,10 +192,11 @@ def _feather_to_feather(file_name) -> None:
         'goodreads_interactions_fantasy_paranormal': interaction_parser,
         'goodreads_reviews_fantasy_paranormal': review_parser
     }
-    output_file = pathlib.Path(__file__).parent / f'../../data/raw/{file_name}.feather'
+    output_file = pathlib.Path(__file__).parents[2] / f'data/raw/goodreads_interactions_fantasy_paranormal.feather'
 
     table: pa.Table = feather.read_table(output_file)
     logger.info(f"Table Loaded: {utils.display_size(table.nbytes)}")
     parse = dispatcher.get(file_name, generic_parser)
     table = parse(table)
-    feather.write_feather(table, output_file)
+    logger.info(f"Table Converted: {utils.display_size(table.nbytes)}")
+    feather.write_feather(table, str(output_file))
