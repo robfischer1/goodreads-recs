@@ -39,6 +39,9 @@ class FileManager(object):
         if download:
             self.download()
 
+    def exists(self) -> bool:
+        return self._output_file.exists()
+
     @property
     def example(self) -> dict:
         file = self._example_file

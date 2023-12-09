@@ -72,7 +72,7 @@ class GoodreadsData(object):
         if self.ratings.exists() and self.books.exists():
             return pd.read_feather(self.ratings), pd.read_feather(self.books)
 
-        if self.cheating:
+        if self.cheating and not all([file.exists for file in self.files.values()]):
             file_list = gdown.download_folder(
                 id=self.config.remote_storage,
                 output=str(self.data_dir / 'raw'),
@@ -102,13 +102,3 @@ class GoodreadsData(object):
         ids, ratings, labels = process.build_records(df, self.min_length, self.max_length)
         np.savez_compressed(self.dataset, context_id=ids, context_rating=ratings, label_id=labels)
         return len(ids)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.debug("Working?")
-
-    test_dataset = GoodreadsData()
-    test_dataset.files['ratings'].download()
