@@ -67,6 +67,7 @@ class GoodreadsData(object):
         ratings_df, works_df = self._preload_dataframes()
         self.config.vocab_size = self._build_database(works_df)
         self.config.num_records = self._build_dataset(ratings_df)
+        del ratings_df, works_df
         config_file.save()
 
     def _preload_dataframes(self) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -101,5 +102,7 @@ class GoodreadsData(object):
     def _build_dataset(self, df) -> int:
         logger.info(f"Exporting {self.dataset.name}")
         ids, ratings, labels = process.build_records(df, self.min_length, self.max_length)
+        n_records = len(ids)
         np.savez_compressed(self.dataset, context_id=ids, context_rating=ratings, label_id=labels)
-        return len(ids)
+        del ids, ratings, labels
+        return n_records

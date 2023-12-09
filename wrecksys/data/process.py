@@ -128,6 +128,7 @@ def build_records(
             label_ids.extend(user_label_ids)
             conversion_progress.update(1)
 
+    del user_context_ids, user_context_ratings, user_label_ids
     return context_ids, context_ratings, label_ids
 
 
@@ -171,4 +172,5 @@ def build_contexts(
             label_id = np.array([user.books[label]], dtype=np.int32)
             label_ids.append(label_id)
 
+    del context_id, context_rating, label_id
     return context_ids, context_ratings, label_ids
