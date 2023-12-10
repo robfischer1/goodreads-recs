@@ -104,7 +104,7 @@ class GoodreadsData(object):
         logger.info(f"Exporting {self.dataset.name}")
         ids, ratings, labels = process.build_records(df, self.min_length, self.max_length)
         n_records = len(ids)
-        with open(self.dataset.name, 'wb') as f:
+        with open(self.dataset, 'wb') as f:
             np.savez_compressed(f, context_id=ids, context_rating=ratings, label_id=labels)
         del ids, ratings, labels
         return n_records
