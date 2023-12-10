@@ -136,6 +136,7 @@ def build_records(
     return context_ids, context_ratings, label_ids
 
 
+#Lorem Ipsem
 def build_timelines(df: pd.DataFrame) -> list[UserHistory]:
     timelines = []
 
