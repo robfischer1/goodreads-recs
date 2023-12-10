@@ -1,4 +1,6 @@
 import logging
+import multiprocessing
+import multiprocessing.connection
 import os
 import pathlib
 import sqlite3
