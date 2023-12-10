@@ -16,6 +16,7 @@ def load_datasets(file: str | os.PathLike, batch_size: int, test_percent: float)
     npz = np.load(file)
     logger.debug(f"Loaded {pathlib.Path(file).name}")
     d = tf.data.Dataset.from_tensor_slices(dict(npz)).cache()
+    del npz
     logger.info("Full tf.data.Dataset created")
 
     test_size = int(len(d) * test_percent)
