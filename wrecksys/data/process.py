@@ -133,6 +133,7 @@ def build_records(
     context_ids = np.array(context_ids)
     context_ratings = np.array(context_ratings)
     label_ids = np.array(label_ids)
+    gc.collect()
     return context_ids, context_ratings, label_ids
 
 
@@ -173,7 +174,7 @@ def build_contexts(
             context_rating.resize(max_length)
             context_ratings.append(context_rating)
 
-            label_id = np.array(list(user.books[label]), dtype=np.int32)
+            label_id = np.array([user.books[label]], dtype=np.int32)
             label_ids.append(label_id)
             del context_id, context_rating, label_id
 
