@@ -80,8 +80,9 @@ class GoodreadsData(object):
                 output=str(self.data_dir / 'raw'),
                 quiet=False,
                 use_cookies=False)
-            for file in file_list:
-                logger.info(f"Successfully downloaded {file} from remote.")
+            if file_list is not None:
+                for file in file_list:
+                    logger.info(f"Successfully downloaded {file} from remote.")
             if len(file_list) < len(self.config.sources):
                 self.files = self._source_data(dl=True)
         else:
