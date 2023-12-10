@@ -102,9 +102,23 @@ class GoodreadsData(object):
 
     def _build_dataset(self, df) -> int:
         logger.info(f"Exporting {self.dataset.name}")
-        ids, ratings, labels = process.build_records(df, self.min_length, self.max_length)
-        n_records = len(ids)
-        with open(self.dataset, 'wb') as f:
-            np.savez_compressed(f, context_id=ids, context_rating=ratings, label_id=labels)
-        del ids, ratings, labels
-        return n_records
+        recv_end, send_end = multiprocessing.Pipe(False)
+        p = multiprocessing.Process(target=_build_dataset_worker,
+                                    args=(df, self.min_length, self.max_length, self.dataset, send_end))
+        p.start()
+        p.join()
+        return recv_end.recv()
+
+def _build_dataset_worker(
+        df: pd.DataFrame,
+        min_len: int,
+        max_len: int,
+        out_file: pathlib.Path,
+        out_pipe: multiprocessing.connection.Connection) -> None:
+
+    ids, ratings, labels = process.build_records(df, min_len, max_len)
+    n_records = len(ids)
+    with open(out_file, 'wb') as f:
+        np.savez_compressed(f, context_id=ids, context_rating=ratings, label_id=labels)
+    del ids, ratings, labels
+    out_pipe.send(n_records)
