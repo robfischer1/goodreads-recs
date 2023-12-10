@@ -107,7 +107,7 @@ def prepare_data(fm: dict[str, FileManager])  -> tuple[pd.DataFrame, pd.DataFram
 def build_records(
         df: pd.DataFrame,
         min_length: int,
-        max_length: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        max_length: int)-> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     context_ids = []
     context_ratings = []
@@ -133,6 +133,7 @@ def build_records(
     context_ids = np.array(context_ids)
     context_ratings = np.array(context_ratings)
     label_ids = np.array(label_ids)
+    gc.collect()
     return context_ids, context_ratings, label_ids
 
 
@@ -147,9 +148,10 @@ def build_timelines(df: pd.DataFrame) -> list[UserHistory]:
             books: list = group['work_id'].tolist()
             ratings: list = group['rating'].tolist()
             size: int = len(books)
-            timelines.append(UserHistory(size, books, ratings))
+            user_history = UserHistory(size, books, ratings)
+            timelines.append(user_history)
             timeline_progress.update(1)
-            del books, ratings, size
+            del books, ratings, size, user_history
 
     return timelines
 
@@ -166,15 +168,18 @@ def build_contexts(
     for label in range(1, len(user.books)):
         pos = max(0, label - max_length)
         if (label - pos) >= min_length:
-            context_id = np.array(user.books[pos:label], dtype=np.int32)
+            context_id = user.books[pos:label]
+            context_id = np.array(context_id, dtype=np.int32)
             context_id.resize(max_length)
             context_ids.append(context_id)
 
-            context_rating = np.array(user.ratings[pos:label], dtype=np.float32)
+            context_rating = user.ratings[pos:label]
+            context_rating = np.array(context_rating, dtype=np.float32)
             context_rating.resize(max_length)
             context_ratings.append(context_rating)
 
-            label_id = np.array([user.books[label]], dtype=np.int32)
+            label_id = [user.books[label]]
+            label_id = np.array(label_id, dtype=np.int32)
             label_ids.append(label_id)
             del context_id, context_rating, label_id
 
