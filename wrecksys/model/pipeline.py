@@ -11,9 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def load_datasets(file: str | os.PathLike, batch_size: int, test_percent: float):
-    with open(file, 'rb') as f:
-        npz = np.load(f)
-        logger.debug(f"Loaded {pathlib.Path(file).name}")
+    if isinstance(file, str):
+        file = pathlib.Path(file)
+    npz = np.load(file)
+    logger.debug(f"Loaded {pathlib.Path(file).name}")
     d = tf.data.Dataset.from_tensor_slices(dict(npz)).cache()
     logger.info("Full tf.data.Dataset created")
 
