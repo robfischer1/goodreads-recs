@@ -1,3 +1,4 @@
+import gc
 import logging
 import sys
 from collections import namedtuple
@@ -106,7 +107,7 @@ def prepare_data(fm: dict[str, FileManager])  -> tuple[pd.DataFrame, pd.DataFram
 def build_records(
         df: pd.DataFrame,
         min_length: int,
-        max_length: int) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
+        max_length: int)-> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     context_ids = []
     context_ratings = []
@@ -127,8 +128,11 @@ def build_records(
             context_ratings.extend(user_context_ratings)
             label_ids.extend(user_label_ids)
             conversion_progress.update(1)
+            del user_context_ids, user_context_ratings, user_label_ids
 
-    del user_context_ids, user_context_ratings, user_label_ids
+    context_ids = np.array(context_ids)
+    context_ratings = np.array(context_ratings)
+    label_ids = np.array(label_ids)
     return context_ids, context_ratings, label_ids
 
 
@@ -169,8 +173,8 @@ def build_contexts(
             context_rating.resize(max_length)
             context_ratings.append(context_rating)
 
-            label_id = np.array([user.books[label]], dtype=np.int32)
+            label_id = np.array(list(user.books[label]), dtype=np.int32)
             label_ids.append(label_id)
+            del context_id, context_rating, label_id
 
-    del context_id, context_rating, label_id
     return context_ids, context_ratings, label_ids
