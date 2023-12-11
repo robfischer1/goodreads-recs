@@ -96,7 +96,7 @@ def _contexts_to_examples(contexts: list[UserContext], dataset_dir: str, num_sha
                 feature={
                     "context_id": tf.train.Feature(int64_list=tf.train.Int64List(value=context_id)),
                     "context_rating": tf.train.Feature(float_list=tf.train.FloatList(value=context_rating)),
-                    "label_id": tf.train.Feature(int64_list=tf.train.Int64List(value=[label_id]))
+                    "label_id": tf.train.Feature(int64_list=tf.train.Int64List(value=label_id))
                 }
             )
         )

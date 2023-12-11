@@ -52,7 +52,7 @@ class FunctionalModel(object):
 
     def train_and_eval(self, rounds=1, epochs=1, limit=None) -> Self:
         logger.debug("Entering the training loop")
-        train, test, val = pipeline.load_datasets(self.data.dataset, self.config.batch_size, 0.1)
+        train, test, val = pipeline.load_datasets(self.data.files['dataset'], self.config.batch_size, 0.1)
         val_steps = math.ceil(len(val) // self.config.batch_size)
         for _ in range(rounds):
             use_callbacks = callbacks.callback_list(self.model, self.directory)

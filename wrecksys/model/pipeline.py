@@ -52,7 +52,7 @@ def _load_tfrecords_dataset(directory: str | os.PathLike, feature_length: int) -
         features['label_id'] = tf.cast(features['label_id'], tf.int32)
         return features, features['label_id']
 
-    dataset_dir = pathlib.Path(directory)
+    dataset_dir = pathlib.Path(directory).parent
     dataset_files = [str(f) for f in dataset_dir.glob('*.tfrecord')]
 
     return tf.data.TFRecordDataset(dataset_files).map(_parse, num_parallel_calls=tf.data.AUTOTUNE)
