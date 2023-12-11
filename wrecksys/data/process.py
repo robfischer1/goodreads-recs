@@ -26,12 +26,6 @@ def create_training_data(source_file: pathlib.Path,
                          max_length: int,
                          num_shards: int | None=None,
                          tf_records=False) -> int:
-    if tf_records:
-        target_dir = pathlib.Path(destination).parent
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-    if not source_file.exists():
-        raise FileNotFoundError(f"Could not find {source_file.name} in {source_file.parent}")
 
     os.environ[RECORD_COUNT] = '0'
     p = multiprocessing.Process(target=_create_training_data_worker,
@@ -88,7 +82,7 @@ def _contexts_to_numpy(contexts: list[UserContext], output_file: str, num_shards
                             label_id=np.array(label_ids)
                             )
 
-def _contexts_to_examples(contexts: list[UserContext], dataset_dir: str, num_shards: int) -> None:
+def _contexts_to_examples(contexts: list[UserContext], output_file: str, num_shards: int) -> None:
 
     def _create_tf_example(context_id, context_rating, label_id):
         return tf.train.Example(
@@ -106,10 +100,11 @@ def _contexts_to_examples(contexts: list[UserContext], dataset_dir: str, num_sha
             for example in tf_examples:
                 f.write(example.SerializeToString())
 
+    dataset_dir = pathlib.Path(output_file).parent
     examples = [_create_tf_example(context.ids, context.ratings, context.label) for context in contexts]
     shards = np.array_split(examples, num_shards)
     for i in range(num_shards):
-        _write_tf_records(shards[i], dataset_dir + RECORD_TEMPLATE.format(i))
+        _write_tf_records(shards[i], str(dataset_dir / RECORD_TEMPLATE.format(i)))
 
 
 def build_timelines(df: pd.DataFrame) -> list[UserHistory]:
