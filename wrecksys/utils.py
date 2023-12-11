@@ -42,20 +42,6 @@ def get_file_name(url: str) -> str:
     filename = file_path.with_suffix('').stem
     return filename
 
-
-def get_file_paths(url: str, dest_dir: pathlib.Path) -> dict:
-    file_name = get_file_name(url)
-    return {
-        'url': url,
-        'file_name': file_name,
-        'example_file': (dest_dir / f'examples/{file_name}_example.json').resolve(),
-        "output_file": (dest_dir / f'raw/{file_name}.feather').resolve()
-    }
-
-def source_files(sources: dict[str, str], data_dir: pathlib.Path) -> dict:
-    return { k: get_file_paths(v, data_dir) for k, v in sources.items() }
-
-
 def in_notebook() -> bool:
     try:
         get_ipython = sys.modules['IPython'].get_ipython
