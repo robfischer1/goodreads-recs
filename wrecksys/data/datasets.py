@@ -98,12 +98,6 @@ class GoodreadsData(object):
         )
         config_file.save()
 
-    def _preload_dataset(self) -> None:
-        if self.files['database'].exists() and self.files['dataset'].exists():
-            return
-        self._preload_dataframes()
-
-
     def _preload_dataframes(self) -> None:
         if self.files['ratings'].exists() and self.files['works'].exists():
             return

@@ -27,9 +27,7 @@ def create_training_data(source_file: pathlib.Path,
                          num_shards: int | None=None,
                          tf_records=False) -> int:
     if tf_records:
-        target_dir = pathlib.Path(destination)
-        if target_dir.is_file():
-            raise NotADirectoryError("Please specify a valid directory for TF_Records.")
+        target_dir = pathlib.Path(destination).parent
         target_dir.mkdir(parents=True, exist_ok=True)
 
     if not source_file.exists():
@@ -96,9 +94,9 @@ def _contexts_to_examples(contexts: list[UserContext], dataset_dir: str, num_sha
         return tf.train.Example(
             features=tf.train.Features(
                 feature={
-                    "context_id": tf.train.Feature(int64_list=tf.train.Int32List(value=context_id)),
+                    "context_id": tf.train.Feature(int64_list=tf.train.Int64List(value=context_id)),
                     "context_rating": tf.train.Feature(float_list=tf.train.FloatList(value=context_rating)),
-                    "label_id": tf.train.Feature(int64_list=tf.train.Int32List(value=[label_id]))
+                    "label_id": tf.train.Feature(int64_list=tf.train.Int64List(value=[label_id]))
                 }
             )
         )

@@ -48,6 +48,8 @@ def _load_tfrecords_dataset(directory: str | os.PathLike, feature_length: int) -
             'context_rating': tf.io.FixedLenFeature([feature_length], tf.float32, default_value=np.repeat(3, feature_length)),
             'label_id': tf.io.FixedLenFeature([1], tf.int32)
         })
+        features['context_id'] = tf.cast(features['context_id'], tf.int32)
+        features['label_id'] = tf.cast(features['label_id'], tf.int32)
         return features, features['label_id']
 
     dataset_dir = pathlib.Path(directory)
