@@ -72,6 +72,7 @@ class FileManager(object):
             self._class_logger.debug(f" {self._output_file} already downloaded.")
             return
 
+        logger.debug(f"{self._output_file} not found.")
         print(f"Fetching {self._url}")
         fs = fsspec.filesystem('http', client_kwargs={'read_timeout': 1200.})
         file_size = fs.info(self._url)['size']

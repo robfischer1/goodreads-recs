@@ -56,6 +56,8 @@ def in_notebook() -> bool:
             return False
     except NameError:
         return False
+    except KeyError:
+        return False
 
 
 def check_memory() -> tuple[float, dict]:

@@ -113,3 +113,11 @@ class GoodreadsData(object):
                 use_cookies=False)
         for s in self.sources.values():
             s.download()
+
+
+if __name__ == "__main__":
+    logging.basicConfig()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    test_ds = GoodreadsData('/home/rob/projects/wrecksys/data', from_tfrecords=False)
+    test_ds.build()

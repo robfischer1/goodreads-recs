@@ -4,7 +4,7 @@
     "batch_size": 240,
     "num_predictions": 100,
     "vocab_size": 22996,
-    "num_records": 13850051,
+    "num_records": 0,
     "num_shards": 10,
     "min_series_length": 3,
     "max_series_length": 10,
