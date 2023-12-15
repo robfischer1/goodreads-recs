@@ -59,13 +59,13 @@ class FunctionalModel(object):
                                                          self.config.batch_size,
                                                          test_percent=0.1)
         logger.debug("create_training_data() returns just fine.")
-        # val_steps = math.ceil(len(val) // self.config.batch_size)
+        val_steps = math.ceil(len(val) // self.config.batch_size)
         for _ in range(rounds):
             use_callbacks = callbacks.callback_list(self.model, self.directory)
             logger.debug("Why are we hanging here?")
             self.model.fit(train,
                            validation_data=val,
-                           #validation_steps=val_steps,
+                           validation_steps=val_steps,
                            epochs=epochs,
                            steps_per_epoch=limit,
                            callbacks=use_callbacks,
