@@ -25,7 +25,8 @@ class FunctionalModel(object):
         self.name = model_name
         self.data = GoodreadsData(data_directory)
         self.config = CONFIG_FILE.data
-        self.directory = pathlib.Path(data_directory) / f"models/{model_name}/"
+        self.directory = pathlib.Path(data_directory) / f"models/{model_name}"
+        self.directory.parent.mkdir(parents=True, exist_ok=True)
         self.file = self.directory / f"{model_name}.keras"
         self.file.parent.mkdir(parents=True, exist_ok=True)
         self.model: keras.Model = None
