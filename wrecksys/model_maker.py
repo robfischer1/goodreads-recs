@@ -25,9 +25,10 @@ class FunctionalModel(object):
         self.name = model_name
         self.data = GoodreadsData(data_directory)
         self.config = CONFIG_FILE.data
-        self.directory = pathlib.Path(data_directory) / f"models/{model_name}"
+        self.directory = pathlib.Path(data_directory / 'models' / model_name)
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.file = self.directory / f"{model_name}.keras"
+        print(self.directory.exists())
+        self.file = pathlib.Path(self.directory / f"{model_name}.keras")
         self.model: keras.Model = None
         logger.debug("Model wrapper initialized")
 
@@ -108,11 +109,9 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     test_model = (
-        FunctionalModel('rex2', '/home/rob/projects/capstone/data/')
+        FunctionalModel('rex3', '/home/rob/projects/capstone/data/')
         .load()
-        .train_and_eval(rounds=10)
-        .save()
-        .export_as_saved_model()
+
     )
 
 
