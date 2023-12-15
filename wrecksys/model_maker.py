@@ -5,7 +5,7 @@ import pathlib
 from typing_extensions import Self
 
 from wrecksys.config import ConfigFile
-from wrecksys.data.datasets import GoodreadsData
+from wrecksys.data.sources import GoodreadsData
 from wrecksys.model import callbacks, losses, models, pipeline
 from wrecksys.utils import import_tensorflow
 tf, keras = import_tensorflow()
@@ -39,6 +39,7 @@ class FunctionalModel(object):
         if self.file.exists():
             self.model = keras.models.load_model(self.file, compile=True)
             return self
+        logger.info(f"{self.name} not found, creating new model.")
         return self.new()
 
     def _compile(self) -> Self:
@@ -52,7 +53,10 @@ class FunctionalModel(object):
 
     def train_and_eval(self, rounds=1, epochs=1, limit=None) -> Self:
         logger.debug("Entering the training loop")
-        train, test, val = pipeline.load_datasets(self.data.files['dataset'], self.config.batch_size, 0.1)
+        train, test, val = pipeline.create_training_data(self.data.dataset,
+                                                         self.config.num_records,
+                                                         self.config.batch_size,
+                                                         test_percent=0.1)
         val_steps = math.ceil(len(val) // self.config.batch_size)
         for _ in range(rounds):
             use_callbacks = callbacks.callback_list(self.model, self.directory)
