@@ -115,10 +115,10 @@ class TensorflowRecords(WrecksysDataset):
         files = [str(f) for f in self.output_dir.glob('*.tfrecord')]
         feature_description = {
             'context_id': tf.io.FixedLenFeature(
-                [self.max_length], tf.int64, default_value=np.repeat(0, self.max_length)),
+                [self.max_length], tf.int64, default_value=[0 for _ in range(self.max_length)]),
             'context_rating': tf.io.FixedLenFeature(
-                [self.max_length], tf.float32, default_value=np.repeat(3, self.max_length)),
-            'label_id': tf.io.FixedLenFeature([1], tf.int64)
+                [self.max_length], tf.float32, default_value=[3. for _ in range(self.max_length)]),
+            'label_id': tf.io.FixedLenFeature([1], tf.int64, default_value=[0])
         }
 
         def _parse(example):
