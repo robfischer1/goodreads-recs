@@ -27,7 +27,7 @@ class FunctionalModel(object):
         self.config = CONFIG_FILE.data
         self.directory = pathlib.Path(data_directory) / f"models/{model_name}/"
         self.file = self.directory / f"{model_name}.keras"
-        self.file.parent.mkdir(exist_ok=True)
+        self.file.parent.mkdir(parents=True, exist_ok=True)
         self.model: keras.Model = None
         logger.debug("Model wrapper initialized")
 
@@ -103,8 +103,9 @@ class FunctionalModel(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
-    logger.setLevel(logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
     test_model = (
         FunctionalModel('rex2', '/home/rob/projects/capstone/data/')
