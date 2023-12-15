@@ -29,6 +29,7 @@ class FunctionalModel(object):
         self.directory = pathlib.Path(data_directory) / f'models/{model_name}'
         self.directory.mkdir(parents=True, exist_ok=True)
         self.file = pathlib.Path(self.directory / f"{model_name}.keras")
+
         self.model: keras.Model = None
         logger.debug("Model wrapper initialized")
 

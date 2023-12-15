@@ -7,6 +7,7 @@ tf, keras = import_tensorflow()
 
 logger = logging.getLogger(__name__)
 
+
 def sample_record(dataset: tf.data.Dataset) -> dict:
     sample = next(iter(dataset))
     return {k: v[0] for k, v in sample[0].items()}
