@@ -108,6 +108,9 @@ class TensorflowRecords(WrecksysDataset):
         return self.num_shards == len([f for f in self.output_dir.glob('*.tfrecord')])
 
     def load(self) -> tf.data.Dataset:
+        if not self.exists():
+            self.build()
+
         # Sadly, TensorFlow doesn't like Path objects.
         files = [str(f) for f in self.output_dir.glob('*.tfrecord')]
         feature_description = {
@@ -125,10 +128,8 @@ class TensorflowRecords(WrecksysDataset):
             return features, features['label_id']
 
         d = tf.data.TFRecordDataset(files)
-        d = d.shuffle(len(files))
         d = d.map(_parse, num_parallel_calls=tf.data.AUTOTUNE)
         d = d.cache()
-        d = d.prefetch(buffer_size=tf.data.AUTOTUNE)
         return d
 
     def _build_single_examples(self, books: list[int], ratings: list[int]) -> list[SingleExample]:
