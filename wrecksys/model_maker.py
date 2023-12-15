@@ -32,8 +32,18 @@ class FunctionalModel(object):
         self.model: keras.Model = None
         logger.debug("Model wrapper initialized")
 
+    @property
+    def _model_config(self):
+        return {
+            'vocab_size': self.config.vocab_size,
+            'embedding_dimensions': self.config.embedding_dimensions,
+            'rnn_dimensions': self.config.rnn_dimensions,
+            'num_predictions': self.config.num_predictions
+        }
+
+
     def new(self) -> Self:
-        self.model = models.WreckSys(dict(self.config), name=self.name)
+        self.model = models.WreckSys(**self._model_config, name=self.name)
         return self._compile()
 
     def load(self) -> Self:
