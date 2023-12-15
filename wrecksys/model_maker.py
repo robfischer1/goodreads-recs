@@ -5,7 +5,7 @@ import pathlib
 from typing_extensions import Self
 
 from wrecksys.config import ConfigFile
-from wrecksys.data.datasets import GoodreadsData
+from wrecksys.data.sources import GoodreadsData
 from wrecksys.model import callbacks, losses, models, pipeline
 from wrecksys.utils import import_tensorflow
 tf, keras = import_tensorflow()
@@ -24,21 +24,34 @@ class FunctionalModel(object):
             data_directory = os.getenv(ENV_DATA)
         self.name = model_name
         self.data = GoodreadsData(data_directory)
+        self.dataset = self.data.dataset
         self.config = CONFIG_FILE.data
-        self.directory = pathlib.Path(data_directory) / f"models/{model_name}/"
+        self.directory = pathlib.Path(data_directory) / f'models/{model_name}'
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.file = self.directory / f"{model_name}.keras"
+        self.file = pathlib.Path(self.directory / f"{model_name}.keras")
+
         self.model: keras.Model = None
         logger.debug("Model wrapper initialized")
 
+    @property
+    def _model_config(self):
+        return {
+            'vocab_size': self.config.vocab_size,
+            'embedding_dimensions': self.config.embedding_dimensions,
+            'rnn_dimensions': self.config.rnn_dimensions,
+            'num_predictions': self.config.num_predictions
+        }
+
+
     def new(self) -> Self:
-        self.model = models.WreckSys(dict(self.config), name=self.name)
+        self.model = models.WreckSys(**self._model_config, name=self.name)
         return self._compile()
 
     def load(self) -> Self:
         if self.file.exists():
             self.model = keras.models.load_model(self.file, compile=True)
             return self
+        logger.info(f"{self.name} not found, creating new model.")
         return self.new()
 
     def _compile(self) -> Self:
@@ -52,10 +65,15 @@ class FunctionalModel(object):
 
     def train_and_eval(self, rounds=1, epochs=1, limit=None) -> Self:
         logger.debug("Entering the training loop")
-        train, test, val = pipeline.load_datasets(self.data.dataset, self.config.batch_size, 0.1)
+        train, test, val = pipeline.create_training_data(self.data.dataset,
+                                                         self.config.num_records,
+                                                         self.config.batch_size,
+                                                         test_percent=0.1)
+        logger.debug("create_training_data() returns just fine.")
         val_steps = math.ceil(len(val) // self.config.batch_size)
         for _ in range(rounds):
             use_callbacks = callbacks.callback_list(self.model, self.directory)
+            logger.debug("Why are we hanging here?")
             self.model.fit(train,
                            validation_data=val,
                            validation_steps=val_steps,
@@ -99,11 +117,12 @@ class FunctionalModel(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.NOTSET)
-    logger.setLevel(logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
     test_model = (
-        FunctionalModel('rex2', '/home/rob/projects/capstone/data/')
+        FunctionalModel('rex3', '/home/rob/projects/wrecksys/data/')
         .load()
         .train_and_eval(rounds=10)
         .save()

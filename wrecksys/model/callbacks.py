@@ -24,7 +24,7 @@ def callback_list(model: keras.Model, model_dir: pathlib.Path) -> list:
     checkpoint_dir.parent.mkdir(exist_ok=True)
 
     stop_early = keras.callbacks.EarlyStopping(monitor='Global_Softmax_Cross_Entropy', patience=3)
-    save_tensorboard = keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=1)
+    save_tensorboard = keras.callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=1, profile_batch='10, 15')
 
     """checkpoint = tf.train.Checkpoint(
         model=model,

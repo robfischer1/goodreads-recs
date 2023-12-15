@@ -1,10 +1,11 @@
 {
     "embedding_dimensions": 16,
     "rnn_dimensions": 32,
-    "batch_size": 240,
+    "batch_size": 512,
     "num_predictions": 100,
     "vocab_size": 22996,
-    "num_records": 13850051,
+    "num_records": 13633618,
+    "num_shards": 10,
     "min_series_length": 3,
     "max_series_length": 10,
     "remote_storage": "14nPDyGXJMSLiwChdiyYx8R5dhL557Ui6",

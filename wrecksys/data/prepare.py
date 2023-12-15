@@ -1,18 +1,14 @@
-import gc
 import logging
-import sys
-from collections import namedtuple
+import pathlib
+import sqlite3
 
-import numpy as np
 import pandas as pd
 import pyarrow as pa
-from tqdm.auto import tqdm
 
 from wrecksys.data.download import FileManager
 
 logger = logging.getLogger(__name__)
 
-UserHistory = namedtuple("UserHistory", ["history", "books", "ratings"])
 
 def format_works(books_source: FileManager,
                  authors_source: FileManager,
@@ -92,95 +88,25 @@ def filter_dataframes(ratings: pd.DataFrame, works: pd.DataFrame) -> tuple[pd.Da
         .reset_index(drop=True)
         .sort_values(by=['user_id', 'timestamp'])
     )
-
-
     return ratings, works
 
 
-def prepare_data(fm: dict[str, FileManager])  -> tuple[pd.DataFrame, pd.DataFrame]:
+def prepare_dataframes(fm: dict[str, FileManager])  -> tuple[pd.DataFrame, pd.DataFrame]:
     work_df = format_works(fm['books'], fm['authors'], fm['works'])
     rate_df = format_ratings(fm['ratings'])
     rate_df, work_df = filter_dataframes(rate_df, work_df)
     return rate_df, work_df
 
 
-def build_records(
-        df: pd.DataFrame,
-        min_length: int,
-        max_length: int)-> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def generate_dataframes(source_files: dict[str, FileManager], dest_files: dict[str, pathlib.Path]) -> int:
+    ratings, works = prepare_dataframes(source_files)
+    ratings.to_feather(dest_files['ratings'])
+    works.to_feather(dest_files['works'])
 
-    context_ids = []
-    context_ratings = []
-    label_ids = []
-
-    timeline = build_timelines(df)
-
-    with tqdm(total=len(timeline),
-              desc="Converting to records",
-              file=sys.stdout,
-              unit=' timelines') as conversion_progress:
-        for user in timeline:
-            if user.history < min_length:
-                conversion_progress.update(1)
-                continue
-            user_context_ids, user_context_ratings, user_label_ids = build_contexts(user, min_length, max_length)
-            context_ids.extend(user_context_ids)
-            context_ratings.extend(user_context_ratings)
-            label_ids.extend(user_label_ids)
-            conversion_progress.update(1)
-            del user_context_ids, user_context_ratings, user_label_ids
-
-    context_ids = np.array(context_ids)
-    context_ratings = np.array(context_ratings)
-    label_ids = np.array(label_ids)
-    gc.collect()
-    return context_ids, context_ratings, label_ids
+    con = sqlite3.connect(dest_files['database'])
+    works.to_sql('books', con, index=False, if_exists='replace')
+    con.close()
+    return len(works)
 
 
-def build_timelines(df: pd.DataFrame) -> list[UserHistory]:
-    timelines = []
 
-    with tqdm(total=len(df.user_id.unique()),
-              desc="Building user timelines",
-              file=sys.stdout,
-              unit=' users') as timeline_progress:
-        for _, group in df.groupby('user_id', observed=True):
-            books: list = group['work_id'].tolist()
-            ratings: list = group['rating'].tolist()
-            size: int = len(books)
-            user_history = UserHistory(size, books, ratings)
-            timelines.append(user_history)
-            timeline_progress.update(1)
-            del books, ratings, size, user_history
-
-    return timelines
-
-
-def build_contexts(
-        user: UserHistory,
-        min_length: int,
-        max_length: int) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
-
-    context_ids = []
-    context_ratings = []
-    label_ids = []
-
-    for label in range(1, len(user.books)):
-        pos = max(0, label - max_length)
-        if (label - pos) >= min_length:
-            context_id = user.books[pos:label]
-            context_id = np.array(context_id, dtype=np.int32)
-            context_id.resize(max_length)
-            context_ids.append(context_id)
-
-            context_rating = user.ratings[pos:label]
-            context_rating = np.array(context_rating, dtype=np.float32)
-            context_rating.resize(max_length)
-            context_ratings.append(context_rating)
-
-            label_id = [user.books[label]]
-            label_id = np.array(label_id, dtype=np.int32)
-            label_ids.append(label_id)
-            del context_id, context_rating, label_id
-
-    return context_ids, context_ratings, label_ids

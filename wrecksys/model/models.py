@@ -27,10 +27,9 @@ class WreckSys(keras.Model):
 
     @tf.function
     def train_step(self, data):
-        y_true = data['label_id']
-
+        x, y_true = data
         with tf.GradientTape() as tape:
-            y_pred = self(data, training=True)
+            y_pred = self(x, training=True)
             loss = self.compute_loss(y=y_true, y_pred=y_pred)
 
         gradients = tape.gradient(loss, self.trainable_variables)
@@ -39,8 +38,8 @@ class WreckSys(keras.Model):
 
     @tf.function
     def test_step(self, data):
-        y_true = data['label_id']
-        y_pred = self(data, training=False)
+        x, y_true = data
+        y_pred = self(x, training=False)
         loss = self.compute_loss(y=y_true, y_pred=y_pred)
 
         for metric in self._metrics:
