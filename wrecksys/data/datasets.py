@@ -41,15 +41,16 @@ class WrecksysDataset(abc.ABC):
     def load(self) -> tf.data.Dataset:
         pass
 
-class TensorflowRecords(WrecksysDataset):
+class ProtobufDataset(WrecksysDataset):
     _class_logger = logging.getLogger(__name__).getChild(__qualname__)
     def __init__(self,
                  input_file: str | os.PathLike,
                  output_dir: str | os.PathLike,
-                 file_names: str = 'goodreads',
                  min_length: int = 3,
                  max_length: int = 10,
-                 num_shards: int = 10):
+                 num_shards: int = 10,
+                 file_names: str = 'goodreads',
+                 **kwargs):
 
         self.input_file = pathlib.Path(input_file)
         self.output_dir = pathlib.Path(output_dir)
@@ -181,6 +182,107 @@ class TensorflowRecords(WrecksysDataset):
             for example in tf_examples:
                 f.write(example.SerializeToString())
 
+
+class NumpyDataset(WrecksysDataset):
+    _class_logger = logging.getLogger(__name__).getChild(__qualname__)
+    def __init__(self,
+                 input_file: str | os.PathLike,
+                 output_dir: str | os.PathLike,
+                 min_length: int = 3,
+                 max_length: int = 10,
+                 **kwargs):
+
+        self.input_file = pathlib.Path(input_file)
+        self.output_file = pathlib.Path(output_dir) / 'goodreads.npz'
+        self.output_file.parent.mkdir(parents=True, exist_ok=True)
+
+        self.min_length = min_length
+        self.max_length = max_length
+        self.size = -1
+
+        self._class_logger.debug(f"Input file: {self.input_file}")
+        self._class_logger.debug(f"Output file: {self.output_file}")
+
+    def build(self) -> int | None:
+        if self.exists():
+            self._class_logger.debug("Dataset already built.")
+            return
+
+        context_ids = []
+        context_ratings = []
+        label_ids = []
+
+        df = pd.read_feather(self.input_file, dtype_backend='pyarrow')
+
+        with tqdm(total=len(df.user_id.unique()),
+                  desc="Building user timelines ",
+                  file=sys.stdout,
+                  unit=' users') as timeline_progress:
+            for _, group in df.groupby('user_id', observed=True):
+                books: list = group['work_id'].tolist()
+                ratings: list = group['rating'].tolist()
+
+                if len(books) >= self.min_length:
+                    books, ratings, labels = self._build_user_data(books, ratings)
+                    context_ids.extend(books)
+                    context_ratings.extend(ratings)
+                    label_ids.extend(labels)
+
+                timeline_progress.update(1)
+
+        del df
+
+        self.size = len(label_ids)
+        with open(self.output_file, 'wb') as f:
+            np.savez_compressed(f,
+                                context_id=np.array(context_ids),
+                                context_rating=np.array(context_ratings),
+                                label_id=np.array(label_ids)
+                                )
+
+        self._class_logger.info(f"Successfully saved {self.size} training examples to {self.output_file}")
+        return self.size
+
+    def delete(self) -> None:
+        self.output_file.unlink()
+        self._class_logger.info(f"Removed {self.output_file}.")
+
+    def exists(self) -> bool:
+        return self.output_file.exists()
+
+    def load(self) -> tf.data.Dataset:
+        if not self.exists():
+            self.build()
+
+        with open(self.output_file, 'rb') as f:
+            npz = np.load(f)
+            labels = npz['label_id']
+            logger.debug(f"Loaded {self.output_file.name}")
+            return tf.data.Dataset.from_tensor_slices((dict(npz), labels))
+
+    def _build_user_data(self,
+                         books: list[int],
+                         ratings: list[int]) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
+        user_context_ids = []
+        user_context_ratings = []
+        user_label_ids = []
+
+        for label in range(1, len(books)):
+            pos = max(0, label - self.max_length)
+            length = label - pos
+
+            if length >= self.min_length:
+                context_id = np.array(books[pos:label], dtype=np.int32)
+                context_id.resize(self.max_length)
+                context_rating = np.array(ratings[pos:label], dtype=np.float32)
+                context_rating.resize(self.max_length)
+                label_id = np.array([books[label]], dtype=np.int32)
+
+                user_context_ids.append(context_id)
+                user_context_ratings.append(context_rating)
+                user_label_ids.append(label_id)
+
+        return user_context_ids, user_context_ratings, user_label_ids
 
 
 if __name__ == "__main__":

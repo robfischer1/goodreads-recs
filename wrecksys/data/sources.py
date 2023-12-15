@@ -29,7 +29,8 @@ class GoodreadsData(object):
         self.files = self._get_filepaths()
         self.sources = self._get_source_files()
         self.tfrecords = from_tfrecords
-        self.dataset = datasets.TensorflowRecords(**self.dataset_properties)
+        # self.dataset = datasets.ProtobufDataset(**self.dataset_properties)
+        self.dataset = datasets.NumpyDataset(**self.dataset_properties)
 
     @property
     def vocab_size(self) -> int:
