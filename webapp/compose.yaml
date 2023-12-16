@@ -1,0 +1,27 @@
+services:
+  serving:
+    image: tensorflow/serving
+    container_name: serving
+    environment:
+      - MODEL_NAME=wrecksys
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./assets/saved_model:/models/wrecksys/001
+    networks:
+      - default
+  wrecksys:
+    image: robfischer1/wrecksys:demo
+    container_name: wrecksys
+    depends_on:
+      serving:
+        condition: service_started
+        required: true
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    networks:
+      - default
+networks:
+  default:

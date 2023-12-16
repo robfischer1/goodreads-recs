@@ -1,0 +1,36 @@
+{
+  "name": "wrecksys_one",
+  "packageManager": "yarn@1.22.19",
+  "version": "1.0.0",
+  "description": "Terrible recommendation engine.",
+  "main": "./src/app/page.js",
+  "author": "Rob Fischer",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mapbox/node-pre-gyp": "^1.0.11",
+    "@mui/icons-material": "^5.14.16",
+    "@mui/material": "^5.14.16",
+    "next": "14.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^14.0.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.53.0",
+    "eslint-config-next": "14.0.1",
+    "typescript": "^4.2.0"
+  }
+}

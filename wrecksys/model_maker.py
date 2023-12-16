@@ -2,6 +2,7 @@ import logging
 import math
 import os
 import pathlib
+import tarfile
 from typing_extensions import Self
 
 from wrecksys.config import ConfigFile
@@ -14,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILE = ConfigFile()
 ENV_DATA = 'WRECKSYS_DATA'
+ENV_ROOT = 'WRECKSYS_DIR'
+
 
 class FunctionalModel(object):
 
@@ -22,15 +25,26 @@ class FunctionalModel(object):
             if ENV_DATA not in os.environ:
                 raise ValueError("Please provide a data directory.")
             data_directory = os.getenv(ENV_DATA)
+
+        if ENV_ROOT not in os.environ:
+            project_root = pathlib.Path(__file__).parents[1]
+        project_root = pathlib.Path(os.getenv(ENV_ROOT))
+
         self.name = model_name
+        self.model: keras.Model = None
+        self.config = CONFIG_FILE.data
+
         self.data = GoodreadsData(data_directory)
         self.dataset = self.data.dataset
-        self.config = CONFIG_FILE.data
+
+        self.root_dir = project_root
         self.directory = pathlib.Path(data_directory) / f'models/{model_name}'
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.file = pathlib.Path(self.directory / f"{model_name}.keras")
 
-        self.model: keras.Model = None
+        self.file = pathlib.Path(self.directory / f"{model_name}.keras")
+        self.export_dir = self.directory / 'saved_model'
+        self.build_file = self.root_dir / 'build.tar.gz'
+
         logger.debug("Model wrapper initialized")
 
     @property
@@ -44,7 +58,7 @@ class FunctionalModel(object):
 
 
     def new(self) -> Self:
-        self.model = models.WreckSys(**self._model_config, name=self.name)
+        self.model = models.WreckSys(self._model_config, name=self.name)
         return self._compile()
 
     def load(self) -> Self:
@@ -69,11 +83,9 @@ class FunctionalModel(object):
                                                          self.config.num_records,
                                                          self.config.batch_size,
                                                          test_percent=0.1)
-        logger.debug("create_training_data() returns just fine.")
         val_steps = math.ceil(len(val) // self.config.batch_size)
         for _ in range(rounds):
             use_callbacks = callbacks.callback_list(self.model, self.directory)
-            logger.debug("Why are we hanging here?")
             self.model.fit(train,
                            validation_data=val,
                            validation_steps=val_steps,
@@ -89,7 +101,6 @@ class FunctionalModel(object):
         return self
 
     def export_as_saved_model(self) -> Self:
-        export_dir = str(self.directory / 'saved_model')
         export_archive = keras.export.ExportArchive()
         dummy_input = {
             'context_id': tf.range(10),
@@ -103,17 +114,31 @@ class FunctionalModel(object):
             fn=self.model.serve,
         )
 
-        export_archive.write_out(export_dir)
+        export_archive.write_out(str(self.export_dir))
         return self
 
     def export_to_tflite(self) -> Self:
         tflite_file = str(self.directory / f'{self.name}.tflite')
-        export_dir = str(self.directory / 'saved_model')
-        converter = tf.lite.TFLiteConverter.from_saved_model(export_dir)
+        converter = tf.lite.TFLiteConverter.from_saved_model(str(self.export_dir))
         tflite_model = converter.convert()
         with tf.io.gfile.GFile(tflite_file, 'wb') as f:
             f.write(tflite_model)
         return self
+
+    def deploy(self) -> Self:
+        if not self.directory.exists():
+            return self.export_as_saved_model().deploy()
+
+        app_dir = (self.root_dir / 'webapp/').resolve()
+
+        db_file = self.data.files['database']
+        logger.info(f"Saving project to {self.build_file}")
+        with tarfile.open(self.build_file, 'w:gz') as tar:
+            for file in app_dir.rglob('*'):
+                tar.add(file, file.relative_to(app_dir.parent))
+            for file in self.directory.rglob('*'):
+                tar.add(file, pathlib.Path('webapp/assets' / file.relative_to(self.directory)))
+            tar.add(db_file, 'webapp/assets/app.db')
 
 
 if __name__ == "__main__":
@@ -122,11 +147,10 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     test_model = (
-        FunctionalModel('rex3', '/home/rob/projects/wrecksys/data/')
+        FunctionalModel('rex_test', '/home/rob/projects/wrecksys/data/')
         .load()
-        .train_and_eval(rounds=10)
+        .train_and_eval(rounds=1, epochs=10, limit=100)
         .save()
         .export_as_saved_model()
+        .deploy()
     )
-
-
