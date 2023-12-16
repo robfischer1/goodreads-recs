@@ -129,16 +129,18 @@ class FunctionalModel(object):
         if not self.directory.exists():
             return self.export_as_saved_model().deploy()
 
-        app_dir = (self.root_dir / 'webapp/').resolve()
-
-        db_file = self.data.files['database']
         logger.info(f"Saving project to {self.build_file}")
+
+        app_dir = (self.root_dir / 'webapp/').resolve()
+        db_file = self.data.files['database']
+
         with tarfile.open(self.build_file, 'w:gz') as tar:
             for file in app_dir.rglob('*'):
                 tar.add(file, file.relative_to(app_dir.parent))
             for file in self.directory.rglob('*'):
                 tar.add(file, pathlib.Path('webapp/assets' / file.relative_to(self.directory)))
             tar.add(db_file, 'webapp/assets/app.db')
+        return self
 
 
 if __name__ == "__main__":
