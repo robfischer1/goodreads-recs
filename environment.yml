@@ -13,8 +13,10 @@ dependencies:
   - jupyter
   - pandas=2.1.3
   - pyarrow=14.0.1
+  - matplotlib
   - numpy
   - requests
+  - seaborn>=0.13.0
   - tqdm
   - pip:
     - tensorflow==2.15; sys_platform == "win32"
